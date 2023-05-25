@@ -10,7 +10,7 @@ public class Documento {
     }
 
     public Path pegarPDF() {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = windowsJFileChooser(new JFileChooser());
         FileNameExtensionFilter filtro = new FileNameExtensionFilter("Apenas PDF!", "pdf");
         fileChooser.setFileFilter(filtro);
 
@@ -25,9 +25,9 @@ public class Documento {
     }
 
     public Path pegarKey(String titulo) {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = windowsJFileChooser(new JFileChooser());
         fileChooser.setDialogTitle(titulo);
-        FileNameExtensionFilter filtro = new FileNameExtensionFilter("Apenas key!", "key");
+        FileNameExtensionFilter filtro = new FileNameExtensionFilter("Apenas .key!", "key");
         fileChooser.setFileFilter(filtro);
 
         int opc = fileChooser.showOpenDialog(null);
@@ -40,8 +40,8 @@ public class Documento {
         }
     }
 
-    public Path pegarDiretorio(){
-        JFileChooser fileChooser = new JFileChooser();
+    public Path pegarDiretorio() {
+        JFileChooser fileChooser = windowsJFileChooser(new JFileChooser());
         fileChooser.setDialogTitle("SELECIONE O DIRETORIO");
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
@@ -50,11 +50,26 @@ public class Documento {
         if (opc == JFileChooser.APPROVE_OPTION) {
             String caminhoDoArquivo = fileChooser.getSelectedFile().getAbsolutePath();
             return Paths.get(caminhoDoArquivo);
+        } else if (opc == JFileChooser.CANCEL_OPTION) {
+            System.out.println("Opção cancelada");
+            return null;
         } else {
             System.out.println("Nenhum diretorio selecionado.");
             return null;
         }
 
+    }
+
+
+
+    public static JFileChooser windowsJFileChooser(JFileChooser chooser){
+        LookAndFeel previousLF = UIManager.getLookAndFeel();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            chooser = new JFileChooser();
+            UIManager.setLookAndFeel(previousLF);
+        } catch (IllegalAccessException | UnsupportedLookAndFeelException | InstantiationException | ClassNotFoundException e) {}
+        return chooser;
     }
 
 
