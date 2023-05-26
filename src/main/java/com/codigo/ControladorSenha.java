@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.*;
+import java.util.Base64;
 
 public class ControladorSenha {
 
@@ -20,7 +21,7 @@ public class ControladorSenha {
             Path chavePrivada = documento.pegarKey("CHAVE PRIVADA");
             byte[] chavePrivadaBytes = Files.readAllBytes(chavePrivada);
             EncodedKeySpec encoder = new PKCS8EncodedKeySpec(chavePrivadaBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             PrivateKey pk = keyFactory.generatePrivate(encoder);
 
             return pk;
@@ -37,7 +38,7 @@ public class ControladorSenha {
             Path chavePublica = documento.pegarKey("CHAVE PUBLICA");
             byte[] chavePrivadaBytes = Files.readAllBytes(chavePublica);
             EncodedKeySpec encoder = new X509EncodedKeySpec(chavePrivadaBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             PublicKey pb = keyFactory.generatePublic(encoder);
             return pb;
         }
@@ -50,8 +51,8 @@ public class ControladorSenha {
 
     public void criarSenhas(){
         try{
-            KeyPairGenerator keygen = KeyPairGenerator.getInstance("DSA");
-            keygen.initialize(1024);
+            KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
+            keygen.initialize(2048);
             KeyPair keys = keygen.generateKeyPair();
             PublicKey publicKey = keys.getPublic();
             PrivateKey privateKey = keys.getPrivate();
@@ -69,8 +70,9 @@ public class ControladorSenha {
             saida.write(encoder.getEncoded());
 
             System.out.println("Senhas salvas!");
-            System.out.println("Publica: " + publicKey.getEncoded());
-            System.out.println("Privada: " + privateKey.getEncoded());
+            System.out.println("Publica: " + Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+            System.out.println("Privada: " + Base64.getEncoder().encodeToString(privateKey.getEncoded()));
+
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (FileNotFoundException e) {

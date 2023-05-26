@@ -11,7 +11,7 @@ public class Documento {
 
     public Path pegarPDF() {
         JFileChooser fileChooser = windowsJFileChooser(new JFileChooser());
-        FileNameExtensionFilter filtro = new FileNameExtensionFilter("Apenas PDF!", "pdf");
+        FileNameExtensionFilter filtro = new FileNameExtensionFilter("Selecione um arquivo PDF!", "pdf");
         fileChooser.setFileFilter(filtro);
 
         int opc = fileChooser.showOpenDialog(null);
@@ -27,7 +27,7 @@ public class Documento {
     public Path pegarKey(String titulo) {
         JFileChooser fileChooser = windowsJFileChooser(new JFileChooser());
         fileChooser.setDialogTitle(titulo);
-        FileNameExtensionFilter filtro = new FileNameExtensionFilter("Apenas .key!", "key");
+        FileNameExtensionFilter filtro = new FileNameExtensionFilter("Selecione o arquivo .key!", "key");
         fileChooser.setFileFilter(filtro);
 
         int opc = fileChooser.showOpenDialog(null);
