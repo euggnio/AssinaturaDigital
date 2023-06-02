@@ -1,7 +1,9 @@
 package com.codigo;
 
+import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,16 +25,18 @@ public class Assinatura {
 
     public void assinarPdf(Path documento, PrivateKey chavePrivada,String nome){
         try {
+            PDDocument pdf = PDDocument.load(documento.toFile());
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            byte[] pdfHash = sha256.digest(Files.readAllBytes(documento));
-
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(pdf);
+            byte[] pdfHash = sha256.digest(text.getBytes());
 
             Signature assinar = Signature.getInstance("SHA256withRSA");
             assinar.initSign(chavePrivada);
             assinar.update(pdfHash);
             byte[] assinatura = assinar.sign();
 
-            PDDocument pdf = PDDocument.load(documento.toFile());
+
 
             PDSignature pdSignature = new PDSignature();
             pdSignature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
@@ -40,11 +44,12 @@ public class Assinatura {
             pdSignature.setName(nome);
             pdSignature.setReason("Aula de segurança");
             pdSignature.setLocation("Brasil");
-            Calendar signDate = Calendar.getInstance();
-            signDate.setTime(new Date());
             pdSignature.setContactInfo("(51) 3247-8400");
-            pdSignature.setSignDate(signDate);
+            pdSignature.setSignDate(Calendar.getInstance());
             pdSignature.setContents(assinatura);
+
+            COSString hash = new COSString(Base64.getEncoder().encode(assinatura));
+            pdSignature.getCOSObject().setItem("Signature", hash);
 
             pdf.addSignature(pdSignature);
             pdf.save(doc.pegarDiretorio().toString() + "\\" + documento.getFileName());
@@ -60,30 +65,37 @@ public class Assinatura {
     public void verificarAssinatura(Path documento, PublicKey chavePublica) {
         try {
             PDDocument pdDocument = PDDocument.load(documento.toFile());
-            PDSignature signature = pdDocument.getLastSignatureDictionary();
-            byte[] assinatura = signature.getContents();
 
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            byte[] pdfHash = sha256.digest(pdDocument.getSignatureDictionaries().get(0).getSignedContent(Files.readAllBytes(documento)));
+            PDFTextStripper stripperV = new PDFTextStripper();
+            String textV = stripperV.getText(pdDocument);
+            byte[] pdfHash = sha256.digest(textV.getBytes());
 
 
+            Signature signatureV = Signature.getInstance("SHA256WithRSA");
+            signatureV.initVerify(chavePublica);
+            signatureV.update(pdfHash);
 
-
-            Signature verificar = Signature.getInstance("SHA256withRSA");
-            verificar.initVerify(chavePublica);
-            verificar.update(pdfHash);
-
-
-            if (verificar.verify(assinatura)) {
-                System.out.println("Assinatura foi feita corretamente.");
+            if (pdDocument.getLastSignatureDictionary() == null) {
+                System.out.println("Documento não assinado.");
             } else {
-                System.out.println("Assinatura errada ou inexistente.");
+                byte[] assinaturaV = Base64.getDecoder().decode(pdDocument.getLastSignatureDictionary().getCOSObject().getString("Signature"));
+
+                if (signatureV.verify(assinaturaV)) {
+                    System.out.println("Documento assinado!");
+                } else {
+                    System.out.println("Documento não assinado");
+                }
             }
-        } catch (NoSuchAlgorithmException | InvalidKeyException | IOException | SignatureException e) {
-            System.out.println("Erro ao verificar a assinatura: " + e.getMessage());
-            e.printStackTrace();
 
-    }
-    }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (SignatureException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
 
-}
+    }}

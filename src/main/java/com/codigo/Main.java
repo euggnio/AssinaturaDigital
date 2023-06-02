@@ -37,9 +37,10 @@ public class Main {
             System.out.println("Digite 1 para assinar um PDF." +
                     "\nDigite 2 para criar as senhas." +
                     "\nDigite 3 para carregar suas senhas." +
-                    "\nDigite 4 para verificar assinatura.");
-            opc = sc.nextInt();
+                    "\nDigite 4 para verificar assinatura." +
+                    "\nDigite 0 para sair.");
 
+            opc = sc.nextInt();
             switch (opc){
                 case 1:
                     if(pk == null || pb == null){
@@ -60,10 +61,6 @@ public class Main {
                 case 3:
                     pk = cs.senhaPrivada();
                     pb = cs.senhaPublica();
-
-                    System.out.println("Publica: " + Base64.getEncoder().encodeToString(pb.getEncoded()));
-                    System.out.println("Privada: " + Base64.getEncoder().encodeToString(pk.getEncoded()));
-
                     if (pk != null && pb != null){
                         System.out.println("Senhas foram armazenadas para uso!");
                     }
